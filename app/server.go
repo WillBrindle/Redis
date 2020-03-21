@@ -80,14 +80,14 @@ func handleConnection(conn net.Conn) {
           key := strArr[i]
           if strings.ToUpper(key) == "PX" {
             px, _ := strconv.ParseInt(strArr[i + 1], 10, 64)
-            expTime = time.Now().UnixNano() + px * 1000
+            expTime = time.Now().UnixNano() / 1000000 + px
           }
         }
 
         m[strArr[1]] = RedisRecord{strArr[2], expTime}
         conn.Write([]byte("+OK\r\n"))
       case "GET":
-        now := time.Now().UnixNano()
+        now := time.Now().UnixNano() / 1000000
         res, ok := m[strArr[1]]
 
         if ok == false {
