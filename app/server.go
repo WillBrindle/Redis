@@ -89,11 +89,16 @@ func handleConnection(conn net.Conn) {
       case "GET":
         now := time.Now().Unix() * 1000
         res, ok := m[strArr[1]]
+
         if ok == false {
           fmt.Println("Returning nil res")
           conn.Write([]byte("$-1\r\n"))
           continue
         }
+        
+        fmt.Println("Time is", now)
+        fmt.Println("Expiry is", res.expiryTime)
+
         if res.expiryTime >= 0 && res.expiryTime <= now {
           fmt.Println("Returning expired res")
           conn.Write([]byte("$-1\r\n"))
