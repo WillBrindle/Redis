@@ -76,7 +76,7 @@ func handleConnection(conn net.Conn) {
         conn.Write([]byte("+OK\r\n"))
       case "SET":
         var expTime int64 = -1
-        for i := 2; i < elems; i += 2 {
+        for i := 3; i < elems; i += 2 {
           key := strArr[i]
           if strings.ToUpper(key) == "PX" {
             px, _ := strconv.ParseInt(strArr[i + 1], 10, 64)
