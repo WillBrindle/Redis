@@ -6,7 +6,8 @@ import (
   "net";
   "io";
   "bytes";
-  "strconv"
+  "strconv";
+  "strings"
 )
 
 func readChunk(b *bytes.Buffer) []byte {
@@ -58,7 +59,7 @@ func handleConnection(conn net.Conn) {
 
       fmt.Println("Hmm...", strArr[0])
 
-      switch cmd := strArr[0]; cmd {
+      switch cmd := strings.ToUpper(strArr[0]); cmd {
       case "PING":
         conn.Write([]byte("+PONG\r\n"))
       case "ECHO":
