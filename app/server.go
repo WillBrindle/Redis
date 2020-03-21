@@ -7,7 +7,8 @@ import (
   "io";
   "bytes";
   "strconv";
-  "strings"
+  "strings";
+  "time"
 )
 
 var m map[string]RedisRecord
@@ -74,11 +75,21 @@ func handleConnection(conn net.Conn) {
       case "COMMAND":
         conn.Write([]byte("+OK\r\n"))
       case "SET":
-        m[strArr[1]] = RedisRecord{strArr[2], -1}
+        var expTime int64 = -1
+        for i := 2; i < elems; i += 2 {
+          key := strArr[i]
+          if strings.ToUpper(key) == "PX" {
+            px, _ := strconv.ParseInt(strArr[i + 1], 10, 64)
+            expTime = time.Now().Unix() * 1000 + px
+          }
+        }
+
+        m[strArr[1]] = RedisRecord{strArr[2], expTime}
         conn.Write([]byte("+OK\r\n"))
       case "GET":
+        now := time.Now().Unix() * 1000
         res, ok := m[strArr[1]]
-        if ok == false {
+        if ok == false || (res.expiryTime >= 0 && res.expiryTime <= now) {
           conn.Write([]byte("$-1\r\n"))
           continue
         }
