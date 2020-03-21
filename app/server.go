@@ -10,6 +10,8 @@ import (
   "strings"
 )
 
+var m map[string]string
+
 func readChunk(b *bytes.Buffer) []byte {
   c := make([]byte, 0, b.Len())
   read := 0
@@ -57,7 +59,7 @@ func handleConnection(conn net.Conn) {
         strArr[i] = string(readChunk(b))
       }
 
-      fmt.Println("Hmm...", strArr[0])
+      fmt.Println("Got command ", strArr[0])
 
       switch cmd := strings.ToUpper(strArr[0]); cmd {
       case "PING":
@@ -65,7 +67,19 @@ func handleConnection(conn net.Conn) {
       case "ECHO":
         conn.Write([]byte("+" + strArr[1] + "\r\n"))
       case "COMMAND":
-        conn.Write([]byte("+PONG\r\n"))
+        conn.Write([]byte("+OK\r\n"))
+      case "SET":
+        m[strArr[1]] = strArr[2]
+        conn.Write([]byte("+OK\r\n"))
+      case "GET":
+        res, ok := m[strArr[1]]
+        if ok == false {
+          conn.Write([]byte("$-1\r\n"))
+          continue
+        }
+        byteLen := len(res)
+        formattedRes := "$" + strconv.Itoa(byteLen) + "\r\n" + res + "\r\n"
+        conn.Write([]byte(formattedRes))
       }
     }
   }
@@ -75,6 +89,8 @@ func handleConnection(conn net.Conn) {
 
 func main() {
   fmt.Println("Launching server!")
+
+  m = make(map[string]string)
 
   l, err := net.Listen("tcp", "0.0.0.0:6379")
   if err != nil {
