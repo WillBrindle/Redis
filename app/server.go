@@ -10,7 +10,12 @@ import (
   "strings"
 )
 
-var m map[string]string
+var m map[string]RedisRecord
+
+type RedisRecord struct {
+  value string
+  expiryTime int64
+}
 
 func readChunk(b *bytes.Buffer) []byte {
   c := make([]byte, 0, b.Len())
@@ -69,7 +74,7 @@ func handleConnection(conn net.Conn) {
       case "COMMAND":
         conn.Write([]byte("+OK\r\n"))
       case "SET":
-        m[strArr[1]] = strArr[2]
+        m[strArr[1]] = RedisRecord{strArr[2], -1}
         conn.Write([]byte("+OK\r\n"))
       case "GET":
         res, ok := m[strArr[1]]
@@ -77,8 +82,8 @@ func handleConnection(conn net.Conn) {
           conn.Write([]byte("$-1\r\n"))
           continue
         }
-        byteLen := len(res)
-        formattedRes := "$" + strconv.Itoa(byteLen) + "\r\n" + res + "\r\n"
+        byteLen := len(res.value)
+        formattedRes := "$" + strconv.Itoa(byteLen) + "\r\n" + res.value + "\r\n"
         conn.Write([]byte(formattedRes))
       }
     }
@@ -90,7 +95,7 @@ func handleConnection(conn net.Conn) {
 func main() {
   fmt.Println("Launching server!")
 
-  m = make(map[string]string)
+  m = make(map[string]RedisRecord)
 
   l, err := net.Listen("tcp", "0.0.0.0:6379")
   if err != nil {
