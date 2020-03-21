@@ -65,7 +65,7 @@ func handleConnection(conn net.Conn) {
         strArr[i] = string(readChunk(b))
       }
 
-      fmt.Println("Got command ", strArr[0])
+      fmt.Println("Got command ", strArr)
 
       switch cmd := strings.ToUpper(strArr[0]); cmd {
       case "PING":
